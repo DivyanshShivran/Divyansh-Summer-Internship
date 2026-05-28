@@ -1,0 +1,57 @@
+ef run_for_loop_examples():
+    print("--- Testing For Loops ---")
+    
+    # Simple iteration over a range (0 to 4)
+    for i in range(5):
+        print(f"Current index is: {i}")
+    
+    print("-" * 30)
+    
+    # Looping through a collection
+    tech_stack = ["Python", "Django", "React", "Docker"]
+    print("Internship tech stack to cover:")
+    for tech in tech_stack:
+        print(f" -> Need to learn: {tech}")
+
+
+def run_while_loop_examples():
+    print("\n--- Testing While Loops & Conditions ---")
+    
+    # Simulating a basic countdown or threshold
+    count = 1
+    max_limit = 5
+    
+    while count <= max_limit:
+        print(f"Count is at {count} of {max_limit}")
+        count += 1
+    
+    print("Loop finished successfully.")
+
+
+def run_control_statements():
+    print("\n--- Testing Break & Continue ---")
+    
+    # Finding specific numbers in a dataset
+    numbers = [10, 15, 22, 33, 40, 55, 60, 71, 80]
+    print(f"Scanning list: {numbers}")
+    
+    for num in numbers:
+        # Skip even numbers
+        if num % 2 == 0:
+            continue
+            
+        print(f"Processing odd number: {num}")
+        
+        # Stop completely if a specific target condition is met
+        if num > 50:
+            print(f"Found first odd number greater than 50 ({num}). Stopping scan.")
+            break
+
+
+# Running everything to verify the output works perfectly
+if __name__ == "__main__":
+    print("=== START OF LOOP PRACTICE ===")
+    run_for_loop_examples()
+    run_while_loop_examples()
+    run_control_statements()
+    print("\n=== All tests passed smoothly ===")
