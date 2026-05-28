@@ -1,4 +1,4 @@
-ef run_for_loop_examples():
+def run_for_loop_examples():
     print("--- Testing For Loops ---")
     
     # Simple iteration over a range (0 to 4)
