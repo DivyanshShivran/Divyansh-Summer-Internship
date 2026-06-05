@@ -103,56 +103,49 @@
 </div>
 
 <script>
-    // Initial data list
-    const myExpenses = [
-        { desc: "Lunch at cafeteria", amount: 250, category: "Food" },
-        { desc: "Monthly travel pass", amount: 1200, category: "Transport" }
-    ];
-
     const form = document.getElementById('expense-form');
 
-    // Handle form submit
+    // Handle form submit locally for now
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        const desc = document.getElementById('desc').value;
-        const amount = parseFloat(document.getElementById('amount').value);
-        const category = document.getElementById('category').value;
-
-        if (desc && amount > 0) {
-            myExpenses.push({ desc, amount, category });
-            renderDashboard();
-            form.reset();
-        }
+        form.reset();
     });
 
-    // Update table and total
-    function renderDashboard() {
-        const tbody = document.getElementById('table-body');
-        tbody.innerHTML = '';
-        
-        let grandTotal = 0;
+    # Asynchronous function to fetch live records from your Django views endpoint
+    async function renderDashboard() {
+        try {
+            const response = await fetch('/api/expenses/');
+            const data = await response.json();
+            
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = ''; // Clear old static table rows
+            
+            let grandTotal = 0;
 
-        for (let i = 0; i < myExpenses.length; i++) {
-            let item = myExpenses[i];
-            grandTotal += item.amount;
+            # Loop through the dynamic array sent by the backend views controller
+            for (let i = 0; i < data.expenses.length; i++) {
+                let item = data.expenses[i];
+                grandTotal += item.amount;
 
-            // Create new row
-            let row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.desc}</td>
-                <td>${item.category}</td>
-                <td>₹${item.amount.toFixed(2)}</td>
-            `;
-            tbody.appendChild(row);
+                // Create a new table row dynamically for each record
+                let row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.desc}</td>
+                    <td>${item.category}</td>
+                    <td>₹${item.amount.toFixed(2)}</td>
+                `;
+                tbody.appendChild(row);
+            }
+
+            // Update your dashboard total metric display element
+            document.getElementById('total-amount').innerText = `₹${grandTotal.toFixed(2)}`;
+        } catch (error) {
+            console.error("Connection link error fetching data from Django backend.");
         }
-
-        // Update total display
-        document.getElementById('total-amount').innerText = `₹${grandTotal.toFixed(2)}`;
     }
 
-    // Run on page load
-    renderDashboard();
+    // Automatically trigger backend synchronizations when the window viewport loads
+    window.addEventListener('DOMContentLoaded', renderDashboard);
 </script>
 
 </body>
