@@ -1,29 +1,56 @@
+import json
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from .models import Expense
 
-def dashboard_view(request):
-    """
-    Renders and serves the core HTML dashboard template directly 
-    from the Django backend template engine layer.
-    """
-    return render(request, 'index.html')
-
+@csrf_exempt
 def expense_list_api(request):
     """
-    Fetches all expense logs from the database, extracts their values, 
-    and returns a standardized JSON response format.
+    Unified API endpoint to fetch expense records (GET) and 
+    process new form submissions to save records (POST).
     """
-    expenses_query = Expense.objects.all()
-    
-    data = []
-    for expense in expenses_query:
-        # Map fields precisely to align with frontend JavaScript 'item.desc' properties
-        data.append({
-            "id": expense.id,
-            "desc": expense.description,  # Maps backend description to frontend item.desc
-            "amount": float(expense.amount),
-            "category": expense.category
-        })
+    # --- HANDLE DATA WRITING (POST) ---
+    if request.method == 'POST':
+        try:
+            # Parse the incoming JSON data stream from the frontend
+            payload = json.loads(request.body)
+            
+            # Extract values precisely matching our database model schema
+            description = payload.get('desc')
+            amount = payload.get('amount')
+            category = payload.get('category')
+            
+            # Simple server-side sanity check validation
+            if not description or not amount:
+                return JsonResponse({"error": "Missing mandatory fields."}, status=400)
+                
+            # Use Django ORM to write a new row directly into the database table
+            new_expense = Expense.objects.create(
+                description=description,
+                amount=float(amount),
+                category=category
+            )
+            
+            # Return success status along with the newly created record ID
+            return JsonResponse({
+                "message": "Expense logged successfully!",
+                "id": new_expense.id
+            }, status=201)
+            
+        except (ValueError, json.JSONDecodeError):
+            return JsonResponse({"error": "Invalid data format received."}, status=400)
+
+    # --- HANDLE DATA READING (GET) ---
+    elif request.method == 'GET':
+        expenses_query = Expense.objects.all()
         
-    return JsonResponse({"expenses": data}, safe=False)
+        data = []
+        for expense in expenses_query:
+            data.append({
+                "id": expense.id,
+                "desc": expense.description,
+                "amount": float(expense.amount),
+                "category": expense.category
+            })
+            
+        return JsonResponse({"expenses": data}, safe=False)
