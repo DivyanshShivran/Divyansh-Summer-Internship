@@ -105,13 +105,41 @@
 <script>
     const form = document.getElementById('expense-form');
 
-    // Handle form submit locally for now
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        form.reset();
+    // Intercept form submissions and send them to Django via HTTP POST
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault(); // Stop the page from reloading
+        
+        const desc = document.getElementById('desc').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+        const category = document.getElementById('category').value;
+
+        if (desc && amount > 0) {
+            const payload = { desc, amount, category };
+
+            try {
+                // Send the input data to our Django multi-method API endpoint
+                const response = await fetch('/api/expenses/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload) // Convert object to text string
+                });
+
+                if (response.ok) {
+                    console.log("Record saved to database successfully!");
+                    form.reset();       // Clear the form fields
+                    renderDashboard();  // Refresh the table list dynamically
+                } else {
+                    console.error("Server-side validation error processing entry.");
+                }
+            } catch (error) {
+                console.error("Network communication failure talking to Django backend:", error);
+            }
+        }
     });
 
-    # Asynchronous function to fetch live records from your Django views endpoint
+    // Asynchronous function to fetch live records from your Django views endpoint (HTTP GET)
     async function renderDashboard() {
         try {
             const response = await fetch('/api/expenses/');
@@ -122,7 +150,7 @@
             
             let grandTotal = 0;
 
-            # Loop through the dynamic array sent by the backend views controller
+            // Loop through the dynamic array sent by the backend views controller
             for (let i = 0; i < data.expenses.length; i++) {
                 let item = data.expenses[i];
                 grandTotal += item.amount;
