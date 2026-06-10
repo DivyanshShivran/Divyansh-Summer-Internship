@@ -109,33 +109,45 @@
     form.addEventListener('submit', async function(e) {
         e.preventDefault(); // Stop the page from reloading
         
-        const desc = document.getElementById('desc').value;
+        const desc = document.getElementById('desc').value.trim();
         const amount = parseFloat(document.getElementById('amount').value);
         const category = document.getElementById('category').value;
 
-        if (desc && amount > 0) {
-            const payload = { desc, amount, category };
+        // Frontend Validation: Catch basic issues before making a server request
+        if (!desc) {
+            alert("Please enter a valid item name.");
+            return;
+        }
 
-            try {
-                // Send the input data to our Django multi-method API endpoint
-                const response = await fetch('/api/expenses/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload) // Convert object to text string
-                });
+        if (isNaN(amount) || amount <= 0) {
+            alert("Please enter an amount greater than zero.");
+            return;
+        }
 
-                if (response.ok) {
-                    console.log("Record saved to database successfully!");
-                    form.reset();       // Clear the form fields
-                    renderDashboard();  // Refresh the table list dynamically
-                } else {
-                    console.error("Server-side validation error processing entry.");
-                }
-            } catch (error) {
-                console.error("Network communication failure talking to Django backend:", error);
+        const payload = { desc, amount, category };
+
+        try {
+            const response = await fetch('/api/expenses/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload) // Convert object to text string
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log("Record saved successfully!");
+                form.reset();       // Clear the form fields
+                renderDashboard();  // Refresh the table list dynamically
+            } else {
+                // Display the specific error message sent back by Django
+                alert("Server Error: " + result.error);
             }
+        } catch (error) {
+            console.error("Network error talking to server.");
+            alert("Could not connect to the server. Please check your network connection.");
         }
     });
 
