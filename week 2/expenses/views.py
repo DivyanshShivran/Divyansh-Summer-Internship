@@ -6,48 +6,48 @@ from .models import Expense
 @csrf_exempt
 def expense_list_api(request):
     """
-    Unified API endpoint with added server-side validation rules 
-    to prevent bad data injection.
+    Unified API endpoint handling data reads (GET), data writes (POST),
+    and record removals (DELETE).
     """
-    # --- HANDLE DATA WRITING (POST) ---
-    if request.method == 'POST':
+    # --- HANDLE DATA DELETION (DELETE) ---
+    if request.method == 'DELETE':
         try:
             payload = json.loads(request.body)
+            expense_id = payload.get('id')
             
+            if not expense_id:
+                return JsonResponse({"error": "Missing expense ID."}, status=400)
+                
+            # Attempt to find and delete the target record row
+            try:
+                expense_item = Expense.objects.get(id=expense_id)
+                expense_item.delete()
+                return JsonResponse({"message": "Expense deleted successfully!"}, status=200)
+            except Expense.DoesNotExist:
+                return JsonResponse({"error": "Expense record not found."}, status=404)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid data format."}, status=400)
+
+    # --- HANDLE DATA WRITING (POST) ---
+    elif request.method == 'POST':
+        try:
+            payload = json.loads(request.body)
             description = payload.get('desc', '').strip()
             amount = payload.get('amount')
             category = payload.get('category')
             
-            # 1. Check for empty or missing text fields
-            if not description:
-                return JsonResponse({"error": "Description cannot be empty."}, status=400)
+            if not description or amount is None or float(amount) <= 0:
+                return JsonResponse({"error": "Invalid form inputs."}, status=400)
                 
-            # 2. Check for missing or invalid numeric values
-            if amount is None:
-                return JsonResponse({"error": "Amount is required."}, status=400)
-                
-            try:
-                amount_value = float(amount)
-                # 3. Prevent zero or negative numbers from being processed
-                if amount_value <= 0:
-                    return JsonResponse({"error": "Amount must be a positive number."}, status=400)
-            except ValueError:
-                return JsonResponse({"error": "Amount must be a valid number."}, status=400)
-                
-            # If all checks pass, write safely to SQLite
             new_expense = Expense.objects.create(
                 description=description,
-                amount=amount_value,
+                amount=float(amount),
                 category=category
             )
-            
-            return JsonResponse({
-                "message": "Expense logged successfully!",
-                "id": new_expense.id
-            }, status=201)
-            
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON format received."}, status=400)
+            return JsonResponse({"message": "Success", "id": new_expense.id}, status=201)
+        except Exception:
+            return JsonResponse({"error": "Server error processing entry."}, status=400)
 
     # --- HANDLE DATA READING (GET) ---
     elif request.method == 'GET':

@@ -95,7 +95,7 @@
                 <th>Description</th>
                 <th>Category</th>
                 <th>Amount</th>
-            </tr>
+                <th>Action</th> </tr>
         </thead>
         <tbody id="table-body">
             </tbody>
@@ -107,13 +107,12 @@
 
     // Intercept form submissions and send them to Django via HTTP POST
     form.addEventListener('submit', async function(e) {
-        e.preventDefault(); // Stop the page from reloading
+        e.preventDefault(); 
         
         const desc = document.getElementById('desc').value.trim();
         const amount = parseFloat(document.getElementById('amount').value);
         const category = document.getElementById('category').value;
 
-        // Frontend Validation: Catch basic issues before making a server request
         if (!desc) {
             alert("Please enter a valid item name.");
             return;
@@ -132,17 +131,16 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(payload) // Convert object to text string
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
 
             if (response.ok) {
                 console.log("Record saved successfully!");
-                form.reset();       // Clear the form fields
-                renderDashboard();  // Refresh the table list dynamically
+                form.reset();       
+                renderDashboard();  
             } else {
-                // Display the specific error message sent back by Django
                 alert("Server Error: " + result.error);
             }
         } catch (error) {
@@ -151,40 +149,67 @@
         }
     });
 
-    // Asynchronous function to fetch live records from your Django views endpoint (HTTP GET)
+    // Send a DELETE request to Django using the specific row ID
+    async function deleteExpense(id) {
+        if (!confirm("Are you sure you want to delete this expense?")) {
+            return; // Exit if the user cancels the popup
+        }
+
+        try {
+            const response = await fetch('/api/expenses/', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: id })
+            });
+
+            if (response.ok) {
+                console.log("Record removed successfully.");
+                renderDashboard(); // Re-fetch data and reload the table layout instantly
+            } else {
+                alert("Failed to delete the record.");
+            }
+        } catch (error) {
+            console.error("Network error during deletion.");
+        }
+    }
+
+    // Fetch live records from Django backend and build the table rows
     async function renderDashboard() {
         try {
             const response = await fetch('/api/expenses/');
             const data = await response.json();
             
             const tbody = document.getElementById('table-body');
-            tbody.innerHTML = ''; // Clear old static table rows
+            tbody.innerHTML = ''; 
             
             let grandTotal = 0;
 
-            // Loop through the dynamic array sent by the backend views controller
             for (let i = 0; i < data.expenses.length; i++) {
                 let item = data.expenses[i];
                 grandTotal += item.amount;
 
-                // Create a new table row dynamically for each record
+                // Create row element and inline inject the custom red Delete button linked to item.id
                 let row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${item.desc}</td>
                     <td>${item.category}</td>
                     <td>₹${item.amount.toFixed(2)}</td>
+                    <td>
+                        <button onclick="deleteExpense(${item.id})" style="background: #dc3545; padding: 5px 10px; width: auto; font-size: 12px; margin: 0;">Delete</button>
+                    </td>
                 `;
                 tbody.appendChild(row);
             }
 
-            // Update your dashboard total metric display element
             document.getElementById('total-amount').innerText = `₹${grandTotal.toFixed(2)}`;
         } catch (error) {
             console.error("Connection link error fetching data from Django backend.");
         }
     }
 
-    // Automatically trigger backend synchronizations when the window viewport loads
+    // Automatically run on page load
     window.addEventListener('DOMContentLoaded', renderDashboard);
 </script>
 
