@@ -12,8 +12,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'expenses', # Links your dashboard app
+    'django.contrib.staticfiles', 
+    'rest_framework',
+    'expenses', 
 ]
 
 MIDDLEWARE = [
