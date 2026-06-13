@@ -33,7 +33,7 @@ def note_list_api(request):
             payload = json.loads(request.body)
             title = payload.get('title', '').strip()
             content = payload.get('content', '').strip()
-            tag = payload.get('tag', 'Personal')
+            tag = payload.get('tag', 'General')
 
             # Backend Validation
             if not title or not content:
