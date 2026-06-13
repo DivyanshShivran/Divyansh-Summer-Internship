@@ -1,240 +1,201 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Expense Tracker</title>
+    <title>Notes Management System</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            padding: 20px;
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 20px; 
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
         }
-        .summary {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+        .form-group { 
+            margin-bottom: 15px; 
         }
-        .form-group {
-            margin-bottom: 15px;
+        .form-group label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; 
+            padding: 8px; 
+            box-sizing: border-box; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
         }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
+        button { 
+            background: #007bff; 
+            color: white; 
+            padding: 10px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 14px; 
         }
-        button {
-            background: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
+        .note-card { 
+            background: #f8f9fa; 
+            border-left: 5px solid #007bff; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 4px; 
+            position: relative; 
         }
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
+        .note-tag { 
+            display: inline-block; 
+            background: #e9ecef; 
+            font-size: 12px; 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            margin-top: 5px; 
+            font-weight: bold; 
         }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f8f9fa;
+        .delete-btn { 
+            background: #dc3545; 
+            color: white; 
+            padding: 4px 8px; 
+            font-size: 12px; 
+            border-radius: 4px; 
+            border: none; 
+            position: absolute; 
+            right: 15px; 
+            top: 15px; 
+            cursor: pointer; 
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Expense Tracker Dashboard</h2>
+    <h2>Notes Management Dashboard</h2>
     
-    <div class="summary">
-        <h3>Total Spent: <span id="total-amount">₹0.00</span></h3>
-    </div>
-
-    <form id="expense-form">
+    <form id="note-form" style="margin-bottom: 30px;">
         <div class="form-group">
-            <label>Description:</label>
-            <input type="text" id="desc" placeholder="e.g. Lunch" required>
+            <label>Note Title:</label>
+            <input type="text" id="title" placeholder="e.g., Study Plan" required>
         </div>
         <div class="form-group">
-            <label>Amount (₹):</label>
-            <input type="number" id="amount" placeholder="0" required>
+            <label>Content:</label>
+            <textarea id="content" rows="3" placeholder="Write your details here..." required></textarea>
         </div>
         <div class="form-group">
-            <label>Category:</label>
-            <select id="category">
-                <option value="Food">Food</option>
-                <option value="Transport">Transport</option>
-                <option value="Bills">Bills</option>
-                <option value="Other">Other</option>
+            <label>Tag:</label>
+            <select id="tag">
+                <option value="Personal">Personal</option>
+                <option value="Study">Study</option>
+                <option value="Work">Work</option>
             </select>
         </div>
-        <button type="submit">Add Expense</button>
+        <button type="submit">Save Note</button>
     </form>
 
-    <div style="margin-top: 25px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-        <h4 style="margin: 0;">Expense List:</h4>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+        <h4 style="margin: 0;">Saved Notes:</h4>
         <div>
-            <label for="filter-category" style="font-size: 14px; margin-right: 5px;">Filter by:</label>
-            <select id="filter-category" onchange="renderDashboard()" style="padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
-                <option value="All">All Categories</option>
-                <option value="Food">Food</option>
-                <option value="Transport">Transport</option>
-                <option value="Bills">Bills</option>
-                <option value="Other">Other</option>
+            <label style="font-size: 14px; margin-right: 5px;">Filter Tag:</label>
+            <select id="filter-tag" onchange="renderNotes()" style="padding: 5px; border-radius: 4px;">
+                <option value="All">All Tags</option>
+                <option value="Personal">Personal</option>
+                <option value="Study">Study</option>
+                <option value="Work">Work</option>
             </select>
         </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Amount</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-            </tbody>
-    </table>
+    <div id="notes-container"></div>
 </div>
 
 <script>
-    const form = document.getElementById('expense-form');
+    const form = document.getElementById('note-form');
 
-    // Intercept form submissions and send them to Django via HTTP POST
+    // Intercept form submissions and send them to the backend via POST
     form.addEventListener('submit', async function(e) {
-        e.preventDefault(); 
-        
-        const desc = document.getElementById('desc').value.trim();
-        const amount = parseFloat(document.getElementById('amount').value);
-        const category = document.getElementById('category').value;
+        e.preventDefault();
+        const title = document.getElementById('title').value.trim();
+        const content = document.getElementById('content').value.trim();
+        const tag = document.getElementById('tag').value;
 
-        if (!desc) {
-            alert("Please enter a valid item name.");
+        // Frontend Validation
+        if (!title || !content) {
+            alert("Please fill out all fields.");
             return;
         }
-
-        if (isNaN(amount) || amount <= 0) {
-            alert("Please enter an amount greater than zero.");
-            return;
-        }
-
-        const payload = { desc, amount, category };
 
         try {
-            const response = await fetch('/api/expenses/', {
+            const response = await fetch('/api/expenses/', { 
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content, tag })
             });
 
-            const result = await response.json();
-
             if (response.ok) {
-                console.log("Record saved successfully!");
-                form.reset();       
-                renderDashboard();  
+                form.reset();
+                renderNotes();
             } else {
-                alert("Server Error: " + result.error);
+                const res = await response.json();
+                alert("Error: " + res.error);
             }
         } catch (error) {
-            console.error("Network error talking to server.");
-            alert("Could not connect to the server. Please check your network connection.");
+            alert("Network connection error.");
         }
     });
 
-    // Send a DELETE request to Django using the specific row ID
-    async function deleteExpense(id) {
-        if (!confirm("Are you sure you want to delete this expense?")) {
-            return; 
-        }
+    // Send a DELETE request to remove a specific note by ID
+    async function deleteNote(id) {
+        if (!confirm("Delete this note permanently?")) return;
 
         try {
             const response = await fetch('/api/expenses/', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: id })
             });
 
-            if (response.ok) {
-                console.log("Record removed successfully.");
-                renderDashboard(); 
-            } else {
-                alert("Failed to delete the record.");
-            }
+            if (response.ok) renderNotes();
         } catch (error) {
             console.error("Network error during deletion.");
         }
     }
 
-    // Fetch live records from Django backend and filter them locally
-    async function renderDashboard() {
+    // Fetch live data records from Django and render them as filtered cards
+    async function renderNotes() {
         try {
             const response = await fetch('/api/expenses/');
             const data = await response.json();
             
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = ''; 
+            const container = document.getElementById('notes-container');
+            container.innerHTML = '';
             
-            // Extract the user's active filter configuration state
-            const selectedFilter = document.getElementById('filter-category').value;
-            let grandTotal = 0;
+            const activeFilter = document.getElementById('filter-tag').value;
 
-            for (let i = 0; i < data.expenses.length; i++) {
-                let item = data.expenses[i];
-                
-                // Conditional structural filter check block
-                if (selectedFilter !== "All" && item.category !== selectedFilter) {
-                    continue; // Skip appending this item to the table body
-                }
+            data.notes.forEach(note => {
+                // Client-Side Conditional Filter Check
+                if (activeFilter !== "All" && note.tag !== activeFilter) return;
 
-                grandTotal += item.amount;
-
-                let row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.desc}</td>
-                    <td>${item.category}</td>
-                    <td>₹${item.amount.toFixed(2)}</td>
-                    <td>
-                        <button onclick="deleteExpense(${item.id})" style="background: #dc3545; padding: 5px 10px; width: auto; font-size: 12px; margin: 0;">Delete</button>
-                    </td>
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <h3 style="margin: 0 0 8px 0; font-size: 18px; padding-right: 60px;">${note.title}</h3>
+                    <p style="margin: 0; color: #495057; font-size: 14px; white-space: pre-wrap;">${note.content}</p>
+                    <span class="note-tag">${note.tag}</span>
+                    <button class="delete-btn" onclick="deleteNote(${note.id})">Delete</button>
                 `;
-                tbody.appendChild(row);
-            }
-
-            // Update display card with the filtered calculation aggregate sum
-            document.getElementById('total-amount').innerText = `₹${grandTotal.toFixed(2)}`;
+                container.appendChild(card);
+            });
         } catch (error) {
-            console.error("Connection link error fetching data from Django backend.");
+            console.error("Failed to load notes from Django backend.");
         }
     }
 
-    // Automatically run on page load
-    window.addEventListener('DOMContentLoaded', renderDashboard);
+    // Trigger on page load
+    window.addEventListener('DOMContentLoaded', renderNotes);
 </script>
-
 </body>
 </html>
