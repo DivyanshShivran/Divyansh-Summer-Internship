@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-your-secret-key-here'
@@ -12,12 +13,19 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles', 
+    'django.contrib.staticfiles',
+    
+    # Third-Party Apps
     'rest_framework',
-    'expenses', 
-]
+    'rest_framework_simplejwt',
+    'corsheaders', 
+    
+    # Local Apps
+    'expenses',
+] 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -45,7 +53,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = None
+
+WSGI_APPLICATION = 'expense_project.wsgi.application'
 
 DATABASES = {
     'default': {
@@ -61,9 +70,15 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-from datetime import timedelta
+# ==============================================================================
+# REACT & API INTEGRATION SETTINGS
+# ==============================================================================
 
-# Configure Django REST Framework to use JWT Authentication by default
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -73,11 +88,11 @@ REST_FRAMEWORK = {
     ),
 }
 
-# Simple JWT Configuration Settings
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'BLACKLIST_AFTER_ROTATION': False,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
