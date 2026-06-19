@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import API from './api';
 import Login from './Login';
+import ExpenseForm from './ExpenseForm';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('access_token'));
@@ -10,8 +11,7 @@ function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    // Fetch secure data now that we are authenticated
-    // Note: Change 'expenses/' to match whatever endpoint you created in Django week 1!
+    // Fetch existing expenses from Django backend
     API.get('expenses/') 
       .then((response) => {
         setData(response.data);
@@ -21,6 +21,11 @@ function App() {
       });
   }, [isAuthenticated]);
 
+  // Callback to append newly created expenses directly into the UI state array
+  const handleExpenseAdded = (newExpense) => {
+    setData((prevData) => [newExpense, ...prevData]);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -28,7 +33,6 @@ function App() {
     setData([]);
   };
 
-  // If the user isn't logged in, display the Login Component
   if (!isAuthenticated) {
     return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
@@ -41,18 +45,29 @@ function App() {
           Logout
         </button>
       </div>
-      <hr />
+      <hr style={{ marginBottom: '20px' }} />
       
+      {/* Mount the interactive form here */}
+      <ExpenseForm onExpenseAdded={handleExpenseAdded} />
+
       {error ? (
         <div style={{ padding: '15px', backgroundColor: '#ffeef0', color: '#e02424', borderRadius: '6px' }}>
           <strong>Error:</strong> {error}
         </div>
       ) : (
         <div>
-          <h3>Your Records:</h3>
+          <h3>Your Expense History:</h3>
           {data.length === 0 ? <p>No data records returned from API yet.</p> : (
-            <ul>
-              {data.map(item => <li key={item.id}>{item.title || item.description} - ${item.amount}</li>)}
+            <ul style={{ listStyleType: 'none', paddingLeft: 0 }}>
+              {data.map(item => (
+                <li key={item.id} style={{ padding: '12px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', backgroundColor: '#fff' }}>
+                  <div>
+                    <strong>{item.title}</strong> <span style={{ fontSize: '12px', color: '#666', marginLeft: '10px' }}>({item.category})</span>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#888' }}>{item.description}</p>
+                  </div>
+                  <span style={{ fontWeight: 'bold', color: '#dc3545' }}>-${item.amount}</span>
+                </li>
+              ))}
             </ul>
           )}
         </div>
